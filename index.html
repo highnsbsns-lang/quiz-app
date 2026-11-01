@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{margin:0}</style>
+<title>ჩემი ქვიზი</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700&family=Noto+Serif+Georgian:wght@600;700&display=swap">
+<style>
+/* Layout: one narrow reading column, two tabs (quiz / my questions), big tap targets for phone use. */
+:root{
+  --bg:#F2F3F8;
+  --surface:#FFFFFF;
+  --ink:#1B1D2A;
+  --muted:#5F6479;
+  --line:#DDE0EA;
+  --accent:#7A1F3D;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#F4DEE5;
+  --good:#1D7A4B;
+  --good-soft:#DDF1E6;
+  --bad:#B3261E;
+  --bad-soft:#FAE0DD;
+  --warn:#8A5A00;
+  --warn-soft:#FBEFD2;
+  --font-display:'Noto Serif Georgian',Georgia,'Times New Roman',serif;
+  --font-body:'Noto Sans Georgian',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14151D;
+    --surface:#1E2029;
+    --ink:#ECEDF3;
+    --muted:#9A9EB2;
+    --line:#32354A;
+    --accent:#E0809E;
+    --accent-ink:#2A0F19;
+    --accent-soft:#3A2430;
+    --good:#5CC38A;
+    --good-soft:#1B3328;
+    --bad:#F0857D;
+    --bad-soft:#3B2321;
+    --warn:#E5B85C;
+    --warn-soft:#3A3019;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14151D;
+  --surface:#1E2029;
+  --ink:#ECEDF3;
+  --muted:#9A9EB2;
+  --line:#32354A;
+  --accent:#E0809E;
+  --accent-ink:#2A0F19;
+  --accent-soft:#3A2430;
+  --good:#5CC38A;
+  --good-soft:#1B3328;
+  --bad:#F0857D;
+  --bad-soft:#3B2321;
+  --warn:#E5B85C;
+  --warn-soft:#3A3019;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:20px 40px;
+}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--font-display);font-size:1.75rem;line-height:1.2;margin:0;font-weight:700;text-wrap:balance}
+h2{font-family:var(--font-display);margin:0;font-weight:600;text-wrap:balance}
+.tabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
+.tab{flex:1;min-height:42px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:inherit;font-weight:600;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,label:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.meta{color:var(--muted);font-size:.9rem;margin:0}
+.btn{min-height:46px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn.small{min-height:36px;padding:0 12px;font-size:.88rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row .btn{flex:1 1 160px}
+.seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.seg label{display:flex;align-items:center;justify-content:center;text-align:center;min-height:56px;padding:8px 10px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;font-weight:600;background:var(--surface)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.chk{display:flex;align-items:center;gap:10px;cursor:pointer;min-height:36px}
+.chk input{width:20px;height:20px;accent-color:var(--accent)}
+.notice{margin:0;padding:12px 14px;border-radius:12px;background:var(--accent-soft);color:var(--ink);font-size:.92rem}
+.notice.err{background:var(--bad-soft)}
+.prog{display:flex;justify-content:space-between;font-size:.9rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s ease}
+.q{font-size:1.35rem;line-height:1.4}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:grid;grid-template-columns:30px minmax(0,1fr);align-items:center;gap:10px;width:100%;text-align:left;min-height:54px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;overflow-wrap:anywhere}
+.opt .k{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--bg);font-size:.85rem;font-weight:700;color:var(--muted)}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.correct{border-color:var(--good);background:var(--good-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.dim{opacity:.55}
+.lbl{font-size:.88rem;font-weight:600;color:var(--muted)}
+.inp,.ta{width:100%;min-height:50px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
+.ta{min-height:84px;resize:vertical}
+.inp.good{border-color:var(--good);background:var(--good-soft)}
+.inp.bad{border-color:var(--bad);background:var(--bad-soft)}
+.inp.warn{border-color:var(--warn);background:var(--warn-soft)}
+.fb{min-height:0;font-weight:600;overflow-wrap:anywhere}
+.fb.good{color:var(--good)}
+.fb.bad{color:var(--bad)}
+.fb.warn{color:var(--warn)}
+.meter{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:6px}
+.meter i{display:block;height:100%;background:var(--muted)}
+.fb.good .meter i{background:var(--good)}
+.fb.warn .meter i{background:var(--warn)}
+.fb.bad .meter i{background:var(--bad)}
+.fb small{display:block;font-weight:400;color:var(--muted);margin-top:2px}
+.score{font-family:var(--font-display);font-size:3.2rem;line-height:1;font-weight:700;font-variant-numeric:tabular-nums}
+.score span{color:var(--muted);font-size:1.6rem}
+.wlist{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.wlist li{padding:12px 14px;border-radius:12px;background:var(--bg);overflow-wrap:anywhere}
+.wlist b{display:block}
+.wlist .ok{color:var(--good)}
+.wlist .no{color:var(--bad)}
+.field{display:flex;flex-direction:column;gap:6px}
+.wgrid{display:grid;grid-template-columns:1fr;gap:8px}
+.hint{font-size:.85rem;color:var(--muted);margin:0}
+.items{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.item{display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);min-width:0}
+.item .t{font-weight:600;overflow-wrap:anywhere}
+.item .a{color:var(--good);overflow-wrap:anywhere}
+.item .m{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{display:inline-block;padding:2px 10px;border-radius:99px;background:var(--accent-soft);font-size:.78rem;font-weight:600}
+.item .row{gap:8px}
+.item .row .btn{flex:0 0 auto}
+.head2{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+@media (min-width:520px){.wgrid{grid-template-columns:1fr 1fr 1fr}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>ჩემი ქვიზი</h1>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-play" data-act="tab" data-tab="play" type="button">ტესტი</button>
+      <button class="tab" role="tab" id="tab-manage" data-act="tab" data-tab="manage" type="button">კითხვები</button>
+    </div>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+(function(){
+  var KEY='quiz.v1';
+  var $=function(s){return document.querySelector(s)};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  var norm=function(s){return String(s).toLowerCase().replace(/[\p{P}]/gu,'').replace(/\s+/g,' ').trim()};
+  var uid=function(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)};
+  function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
+
+  var SAMPLE=[
+    ['რა არის საქართველოს დედაქალაქი?','თბილისი',['ქუთაისი','ბათუმი','რუსთავი']],
+    ['რამდენი ასოა თანამედროვე ქართულ ანბანში?','33',['28','32','36']],
+    ['რომელია მსოფლიოს უდიდესი ოკეანე?','წყნარი ოკეანე',['ატლანტის ოკეანე','ინდოეთის ოკეანე','არქტიკული ოკეანე']],
+    ['რა არის წყლის ქიმიური ფორმულა?','H2O',['CO2','NaCl','O2']],
+    ['რომელია საქართველოს უმაღლესი მწვერვალი?','შხარა',['ყაზბეგი','თეთნულდი','უშბა']]
+  ];
+
+  function load(){
+    try{var r=localStorage.getItem(KEY);if(r){var d=JSON.parse(r);if(d&&Array.isArray(d.questions))return d}}catch(e){}
+    return null;
+  }
+  var store=load();
+  if(!store){
+    store={mode:'choice',shuffle:true,questions:SAMPLE.map(function(s){return {id:uid(),q:s[0],a:s[1],w:s[2],ex:true}})};
+  }
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}}
+  save();
+
+  var app={tab:'play',phase:'start',run:null,editing:null,pendingDelete:null,notice:'',noticeErr:false};
+  var root=$('#app');
+
+  function buildOptions(q){
+    var seen={};seen[norm(q.a)]=1;
+    var d=[];
+    shuffle((q.w||[]).filter(Boolean)).forEach(function(x){var n=norm(x);if(!seen[n]){seen[n]=1;d.push(x)}});
+    d=d.slice(0,3);
+    if(d.length<3){
+      shuffle(store.questions.filter(function(o){return o.id!==q.id})).forEach(function(o){
+        var n=norm(o.a);
+        if(d.length<3&&!seen[n]){seen[n]=1;d.push(o.a)}
+      });
+    }
+    if(d.length<3)return null;
+    return shuffle([q.a].concat(d));
+  }
+
+  function render(){
+    $('#tab-play').setAttribute('aria-selected',app.tab==='play');
+    $('#tab-manage').setAttribute('aria-selected',app.tab==='manage');
+    if(app.tab==='manage'){renderManage();return}
+    if(app.phase==='start')renderStart();
+    else if(app.phase==='run')renderQuestion();
+    else renderResult();
+  }
+
+  /* sim:start */
+  function lev(a,b){var m=a.length,n=b.length,i,j;if(!m)return n;if(!n)return m;var p=[];for(j=0;j<=n;j++)p[j]=j;for(i=1;i<=m;i++){var c=[i];for(j=1;j<=n;j++){c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1))}p=c}return p[n]}
+  function csim(a,b){var L=Math.max(a.length,b.length);return L?1-lev(a,b)/L:1}
+  function similarity(user,ref){
+    var u=norm(user),r=norm(ref);
+    if(!u)return 0;
+    if(u===r)return 100;
+    var cs=csim(u,r),ut=u.split(' '),rt=r.split(' ');
+    function best(t,list){var b=0;list.forEach(function(x){var v=csim(t,x);if(v>b)b=v});return b>=0.7?b:0}
+    var rec=rt.reduce(function(s,t){return s+best(t,ut)},0)/rt.length;
+    var pre=ut.reduce(function(s,t){return s+best(t,rt)},0)/ut.length;
+    var f1=(rec+pre)?2*rec*pre/(rec+pre):0;
+    return Math.max(1,Math.min(100,Math.round(Math.max(cs,f1)*100)));
+  }
+  function band(p){return p>=80?'good':p>=50?'warn':'bad'}
+  function scoreText(r){return r.mode==='score'?'საშუალო: '+(r.done?Math.round(r.sum/r.done):0)+'%':'სწორი: '+r.score}
+  /* sim:end */
+
+  /* ---------- start ---------- */
+  function renderStart(){
+    var n=store.questions.length;
+    var hasEx=store.questions.some(function(q){return q.ex});
+    root.innerHTML=
+      '<section class="card">'+
+        '<h2>ტესტის დაწყება</h2>'+
+        '<p class="meta">კითხვები ბაზაში: <b>'+n+'</b></p>'+
+        (app.notice?'<p class="notice'+(app.noticeErr?' err':'')+'" role="alert">'+esc(app.notice)+'</p>':'')+
+        '<div class="field"><span class="lbl">პასუხის ტიპი</span>'+
+          '<div class="seg" role="radiogroup">'+
+            '<label><input type="radio" name="mode" value="choice"'+(store.mode==='choice'?' checked':'')+'>4 პასუხიდან არჩევა</label>'+
+            '<label><input type="radio" name="mode" value="typed"'+(store.mode==='typed'?' checked':'')+'>წერითი პასუხი</label>'+
+            '<label><input type="radio" name="mode" value="score"'+(store.mode==='score'?' checked':'')+'>წერა და % შეფასება</label>'+
+          '</div>'+
+        '</div>'+
+        '<label class="chk"><input type="checkbox" id="shuf"'+(store.shuffle?' checked':'')+'>კითხვების არევა</label>'+
+        (hasEx?'<p class="hint">ამჟამად ბაზაში მაგალითი კითხვებია. შენი კითხვები დაამატე „კითხვები“ ჩანართში.</p>':'')+
+        '<button class="btn primary" type="button" data-act="start"'+(n?'':' disabled')+'>დაწყება</button>'+
+      '</section>';
+    app.notice='';app.noticeErr=false;
+  }
+
+  function startRun(list,mode){
+    var items=[];
+    for(var i=0;i<list.length;i++){
+      var opts=null;
+      if(mode==='choice'){
+        opts=buildOptions(list[i]);
+        if(!opts){
+          app.notice='4 პასუხიანი რეჟიმისთვის საჭიროა სულ მცირე 4 განსხვავებული პასუხი კითხვებში. დაამატე მეტი კითხვა ან აირჩიე წერითი რეჟიმი.';
+          app.noticeErr=true;app.phase='start';render();return;
+        }
+      }
+      items.push({q:list[i],opts:opts});
+    }
+    app.run={items:items,idx:0,score:0,sum:0,done:0,wrong:[],answered:false,mode:mode};
+    app.phase='run';render();
+  }
+
+  /* ---------- question ---------- */
+  function nextLabel(){var r=app.run;return r.idx===r.items.length-1?'შედეგის ნახვა':'შემდეგი'}
+
+  function renderQuestion(){
+    var r=app.run,it=r.items[r.idx],n=r.items.length;
+    r.answered=false;
+    var body;
+    if(r.mode==='choice'){
+      body='<div class="opts">'+it.opts.map(function(o,i){
+        return '<button class="opt" type="button" data-act="opt" data-i="'+i+'"><span class="k">'+(i+1)+'</span><span>'+esc(o)+'</span></button>';
+      }).join('')+'</div>';
+    }else{
+      body='<div class="field"><label class="lbl" for="ans">შენი პასუხი</label>'+
+        '<input id="ans" class="inp" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ჩაწერე პასუხი"></div>';
+    }
+    root.innerHTML=
+      '<section class="card">'+
+        '<div class="prog"><span>'+(r.idx+1)+' / '+n+'</span><span id="sc">'+scoreText(r)+'</span></div>'+
+        '<div class="bar" aria-hidden="true"><i id="bar" style="width:'+(r.idx/n*100)+'%"></i></div>'+
+        '<h2 class="q">'+esc(it.q.q)+'</h2>'+
+        body+
+        '<div id="fb" class="fb" aria-live="polite"></div>'+
+        '<button id="act" class="btn primary" type="button" data-act="'+(r.mode==='choice'?'next':'check')+'"'+(r.mode==='choice'?' hidden':'')+'>'+(r.mode==='choice'?nextLabel():'შემოწმება')+'</button>'+
+      '</section>';
+    if(r.mode!=='choice'){$('#ans').focus()}
+  }
+
+  function showResult(ok,html,pct,cls){
+    var r=app.run;
+    r.answered=true;
+    if(pct!=null){r.sum+=pct;r.done++}else if(ok)r.score++;
+    $('#sc').textContent=scoreText(r);
+    $('#bar').style.width=((r.idx+1)/r.items.length*100)+'%';
+    var fb=$('#fb');
+    fb.className='fb '+(cls||(ok?'good':'bad'));
+    fb.innerHTML=html;
+    var act=$('#act');
+    act.hidden=false;
+    act.textContent=nextLabel();
+    act.setAttribute('data-act','next');
+    act.focus();
+  }
+
+  function answerChoice(i){
+    var r=app.run;if(r.answered)return;
+    var it=r.items[r.idx];
+    if(i<0||i>=it.opts.length)return;
+    var ci=it.opts.findIndex(function(o){return norm(o)===norm(it.q.a)});
+    var ok=(i===ci);
+    var btns=root.querySelectorAll('.opt');
+    btns.forEach(function(b,k){
+      b.disabled=true;
+      if(k===ci)b.classList.add('correct');
+      else if(k===i)b.classList.add('wrong');
+      else b.classList.add('dim');
+    });
+    if(!ok)r.wrong.push({obj:it.q,given:it.opts[i]});
+    showResult(ok,ok?'სწორია!':'არასწორია. სწორი პასუხია: '+esc(it.q.a));
+  }
+
+  function checkTyped(){
+    var r=app.run;if(r.answered)return;
+    var inp=$('#ans');
+    var val=inp.value;
+    if(!norm(val)){inp.focus();return}
+    var it=r.items[r.idx];
+    if(r.mode==='score'){
+      var pct=similarity(val,it.q.a),cls=band(pct);
+      inp.readOnly=true;
+      inp.classList.add(cls);
+      if(pct<80)r.wrong.push({obj:it.q,given:val.trim(),pct:pct});
+      showResult(pct>=80,'<div class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></div>მსგავსება: '+pct+'%'+(pct<100?'<small>დამახსოვრებული პასუხი: '+esc(it.q.a)+'</small><small>შენი პასუხი: '+esc(val.trim())+'</small>':''),pct,cls);
+      return;
+    }
+    var ok=norm(val)===norm(it.q.a);
+    inp.readOnly=true;
+    inp.classList.add(ok?'good':'bad');
+    if(!ok)r.wrong.push({obj:it.q,given:val.trim()});
+    showResult(ok,ok?'სწორია!':'არასწორია. სწორი პასუხია: '+esc(it.q.a)+'<small>შენი პასუხი: '+esc(val.trim())+'</small>');
+  }
+
+  function next(){
+    var r=app.run;
+    r.idx++;
+    if(r.idx>=r.items.length){app.phase='result';render()}
+    else renderQuestion();
+  }
+
+  /* ---------- result ---------- */
+  function renderResult(){
+    var r=app.run,n=r.items.length,sm=r.mode==='score';
+    var pct=sm?Math.round(r.sum/Math.max(1,r.done)):Math.round(r.score/n*100);
+    var msg=pct>=90?'შესანიშნავი შედეგია':pct>=60?'კარგი შედეგია':'ღირს გამეორება';
+    root.innerHTML=
+      '<section class="card">'+
+        '<h2>შედეგი</h2>'+
+        (sm?'<div class="score">'+pct+'<span>%</span></div><p class="meta">საშუალო მსგავსება · '+n+' კითხვა · '+msg+'</p>'
+           :'<div class="score">'+r.score+' <span>/ '+n+'</span></div><p class="meta">'+pct+'% · '+msg+'</p>')+
+        (r.wrong.length?
+          '<div class="field"><span class="lbl">შეცდომები</span><ul class="wlist">'+
+          r.wrong.map(function(w){
+            return '<li><b>'+esc(w.obj.q)+'</b><span class="ok">სწორი: '+esc(w.obj.a)+'</span><br><span class="no">შენი პასუხი: '+esc(w.given)+(w.pct!=null?' ('+w.pct+'%)':'')+'</span></li>';
+          }).join('')+'</ul></div>':'')+
+        '<div class="row">'+
+          '<button class="btn primary" type="button" data-act="again">თავიდან</button>'+
+          (r.wrong.length?'<button class="btn" type="button" data-act="retry">შეცდომების გამეორება</button>':'')+
+          '<button class="btn" type="button" data-act="home">მთავარი</button>'+
+        '</div>'+
+      '</section>';
+  }
+
+  /* ---------- manage ---------- */
+  function renderManage(){
+    root.innerHTML=
+      '<section class="card" id="formcard">'+
+        '<h2 id="ftitle">ახალი კითხვა</h2>'+
+        '<div class="field"><label class="lbl" for="f-q">კითხვა</label><textarea id="f-q" class="ta" placeholder="მაგ: რომელია საქართველოს უდიდესი ტბა?"></textarea></div>'+
+        '<div class="field"><label class="lbl" for="f-a">სწორი პასუხი</label><input id="f-a" class="inp" type="text" autocomplete="off" placeholder="სწორი პასუხი"></div>'+
+        '<div class="field"><span class="lbl">3 არასწორი პასუხი</span>'+
+          '<div class="wgrid">'+
+            '<input id="f-w1" class="inp" type="text" autocomplete="off" aria-label="არასწორი პასუხი 1" placeholder="არასწორი 1">'+
+            '<input id="f-w2" class="inp" type="text" autocomplete="off" aria-label="არასწორი პასუხი 2" placeholder="არასწორი 2">'+
+            '<input id="f-w3" class="inp" type="text" autocomplete="off" aria-label="არასწორი პასუხი 3" placeholder="არასწორი 3">'+
+          '</div>'+
+          '<p class="hint">წერითი რეჟიმისთვის საჭირო არ არის. თუ ცარიელი დატოვე, 4 პასუხიან რეჟიმში ვარიანტებს სხვა კითხვების პასუხებიდან შევავსებ.</p>'+
+        '</div>'+
+        '<p id="fmsg" class="notice" role="alert" hidden></p>'+
+        '<div class="row">'+
+          '<button id="fsave" class="btn primary" type="button" data-act="save">დამატება</button>'+
+          '<button id="fcancel" class="btn" type="button" data-act="cancel" hidden>გაუქმება</button>'+
+        '</div>'+
+      '</section>'+
+      '<section class="card" style="margin-top:18px">'+
+        '<div class="head2"><h2 id="ltitle"></h2><button id="rmex" class="btn small" type="button" data-act="rmsamples" hidden>მაგალითების წაშლა</button></div>'+
+        '<ul class="items" id="list"></ul>'+
+        '<p class="hint">კითხვები ინახება ამ ბრაუზერში.</p>'+
+      '</section>';
+    fillForm();
+    renderList();
+  }
+
+  function fillForm(){
+    var q=app.editing?store.questions.find(function(x){return x.id===app.editing}):null;
+    if(app.editing&&!q)app.editing=null;
+    $('#f-q').value=q?q.q:'';
+    $('#f-a').value=q?q.a:'';
+    for(var i=0;i<3;i++)$('#f-w'+(i+1)).value=q&&q.w&&q.w[i]?q.w[i]:'';
+    $('#ftitle').textContent=q?'კითხვის რედაქტირება':'ახალი კითხვა';
+    $('#fsave').textContent=q?'შენახვა':'დამატება';
+    $('#fcancel').hidden=!q;
+  }
+
+  function flash(msg,err){
+    var m=$('#fmsg');if(!m)return;
+    m.textContent=msg;m.hidden=false;
+    m.className='notice'+(err?' err':'');
+  }
+
+  function renderList(){
+    var qs=store.questions;
+    $('#ltitle').textContent='ჩემი კითხვები ('+qs.length+')';
+    $('#rmex').hidden=!qs.some(function(q){return q.ex});
+    var ul=$('#list');
+    if(!qs.length){ul.innerHTML='<li class="meta">კითხვები ჯერ არ არის. დაამატე პირველი ზემოთ.</li>';return}
+    ul.innerHTML=qs.map(function(q){
+      var wc=(q.w||[]).filter(Boolean).length;
+      var del=app.pendingDelete===q.id
+        ? '<button class="btn small danger" type="button" data-act="delyes" data-id="'+q.id+'">დიახ, წაშალე</button><button class="btn small" type="button" data-act="delno">არა</button>'
+        : '<button class="btn small" type="button" data-act="edit" data-id="'+q.id+'">რედაქტირება</button><button class="btn small danger" type="button" data-act="del" data-id="'+q.id+'">წაშლა</button>';
+      return '<li class="item">'+
+        '<div class="t">'+esc(q.q)+'</div>'+
+        '<div class="a">სწორი: '+esc(q.a)+'</div>'+
+        '<div class="m"><span class="chip">არასწორი პასუხები: '+wc+'/3</span>'+(q.ex?'<span class="chip">მაგალითი</span>':'')+'</div>'+
+        '<div class="row">'+del+'</div>'+
+      '</li>';
+    }).join('');
+  }
+
+  function saveQuestion(){
+    var q=$('#f-q').value.trim(),a=$('#f-a').value.trim();
+    var w=[1,2,3].map(function(i){return $('#f-w'+i).value.trim()}).filter(Boolean);
+    if(!q){flash('ჩაწერე კითხვა.',true);$('#f-q').focus();return}
+    if(!a){flash('ჩაწერე სწორი პასუხი.',true);$('#f-a').focus();return}
+    var dup=w.some(function(x){return norm(x)===norm(a)});
+    if(dup){flash('არასწორი პასუხი არ უნდა ემთხვეოდეს სწორ პასუხს.',true);return}
+    if(app.editing){
+      var ex=store.questions.find(function(x){return x.id===app.editing});
+      if(ex){ex.q=q;ex.a=a;ex.w=w;ex.ex=false}
+      app.editing=null;
+      save();fillForm();renderList();flash('შენახულია.');
+    }else{
+      store.questions.unshift({id:uid(),q:q,a:a,w:w,ex:false});
+      save();fillForm();renderList();flash('დაემატა. შეგიძლია შემდეგი კითხვა ჩაწერო.');
+      $('#f-q').focus();
+    }
+  }
+
+  /* ---------- events ---------- */
+  document.addEventListener('click',function(e){
+    var el=e.target.closest('[data-act]');
+    if(!el)return;
+    var act=el.getAttribute('data-act');
+    switch(act){
+      case 'tab':
+        var t=el.getAttribute('data-tab');
+        if(t===app.tab)return;
+        app.tab=t;
+        if(t==='play'){app.phase='start'}
+        app.pendingDelete=null;
+        render();break;
+      case 'start':
+        var m=document.querySelector('input[name="mode"]:checked');
+        store.mode=m?m.value:'choice';
+        store.shuffle=$('#shuf').checked;
+        save();
+        var list=store.shuffle?shuffle(store.questions):store.questions.slice();
+        startRun(list,store.mode);break;
+      case 'opt': answerChoice(+el.getAttribute('data-i'));break;
+      case 'check': checkTyped();break;
+      case 'next': next();break;
+      case 'again':
+        startRun(store.shuffle?shuffle(store.questions):store.questions.slice(),app.run.mode);break;
+      case 'retry':
+        var wl=app.run.wrong.map(function(w){return w.obj});
+        startRun(shuffle(wl),app.run.mode);break;
+      case 'home': app.phase='start';render();break;
+      case 'save': saveQuestion();break;
+      case 'cancel': app.editing=null;fillForm();var fm=$('#fmsg');if(fm)fm.hidden=true;break;
+      case 'edit':
+        app.editing=el.getAttribute('data-id');fillForm();
+        $('#formcard').scrollIntoView({behavior:'smooth',block:'start'});
+        $('#f-q').focus();break;
+      case 'del': app.pendingDelete=el.getAttribute('data-id');renderList();break;
+      case 'delno': app.pendingDelete=null;renderList();break;
+      case 'delyes':
+        var id=el.getAttribute('data-id');
+        store.questions=store.questions.filter(function(x){return x.id!==id});
+        if(app.editing===id){app.editing=null;fillForm()}
+        app.pendingDelete=null;save();renderList();break;
+      case 'rmsamples':
+        store.questions=store.questions.filter(function(x){return !x.ex});
+        if(app.editing&&!store.questions.some(function(x){return x.id===app.editing})){app.editing=null;fillForm()}
+        save();renderList();break;
+    }
+  });
+
+  document.addEventListener('keydown',function(e){
+    if(app.tab!=='play'||app.phase!=='run'||!app.run)return;
+    var t=e.target,r=app.run;
+    if(e.key==='Enter'){
+      if(t.id==='act')return;
+      if(t.id==='ans'||r.answered){
+        e.preventDefault();
+        if(r.answered)next();else checkTyped();
+      }
+    }else if(/^[1-4]$/.test(e.key)&&r.mode==='choice'&&!r.answered&&t.tagName!=='INPUT'&&t.tagName!=='TEXTAREA'){
+      answerChoice(+e.key-1);
+    }
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
